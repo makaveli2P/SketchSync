@@ -1,5 +1,5 @@
 import { useRecoilValue } from "recoil";
-import { userIds, usersAtom } from "./user.atoms";
+import { userIds, usersAtom } from "./users.atoms";
 
 export const useUserIds = () => {
   const users = useRecoilValue(userIds);

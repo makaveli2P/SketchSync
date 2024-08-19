@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { socket } from "@/common/lib/socket";
-import { useOptions } from "@/common/recoil/options";
-import { drawOnUndo, handleMove } from "../helpers/Canvas.helpers";
-import usersAtom, { useUsers } from "@/common/recoil/users";
-import { useBoardPosition } from "./useBoardPosition";
-import { getPos } from "@/common/lib/getPos";
+
 import { useSetRecoilState } from "recoil";
 
+import { getPos } from "@/common/lib/getPos";
+import { socket } from "@/common/lib/socket";
+import { useOptions } from "@/common/recoil/options";
+import usersAtom, { useUsers } from "@/common/recoil/users";
+
+import { drawAllMoves, handleMove } from "../helpers/Canvas.helpers";
+import { useBoardPosition } from "./useBoardPosition";
+
+const movesWithoutUser: Move[] = [];
 const savedMoves: Move[] = [];
-let moves: [number, number][] = [];
+
+let tempMoves: [number, number][] = [];
 
 export const useDraw = (
   ctx: CanvasRenderingContext2D | undefined,
@@ -16,13 +21,14 @@ export const useDraw = (
   handleEnd: () => void
 ) => {
   const users = useUsers();
-  const options = useOptions();
-  const [drawing, setDrawing] = useState(false);
 
   const boardPosition = useBoardPosition();
-
   const movedX = boardPosition.x;
   const movedY = boardPosition.y;
+
+  const options = useOptions();
+
+  const [drawing, setDrawing] = useState(false);
 
   useEffect(() => {
     if (ctx) {
@@ -38,7 +44,7 @@ export const useDraw = (
       savedMoves.pop();
       socket.emit("undo");
 
-      drawOnUndo(ctx, savedMoves, users);
+      drawAllMoves(ctx, movesWithoutUser, savedMoves, users);
 
       handleEnd();
     }
@@ -66,41 +72,47 @@ export const useDraw = (
     ctx.beginPath();
     ctx.lineTo(getPos(x, movedX), getPos(y, movedY));
     ctx.stroke();
+
+    tempMoves.push([getPos(x, movedX), getPos(y, movedY)]);
+  };
+
+  const handleDraw = (x: number, y: number) => {
+    if (!ctx || !drawing || blocked) return;
+
+    ctx.lineTo(getPos(x, movedX), getPos(y, movedY));
+    ctx.stroke();
+
+    tempMoves.push([getPos(x, movedX), getPos(y, movedY)]);
   };
 
   const handleEndDrawing = () => {
     if (!ctx || blocked) return;
-    ctx.closePath();
+
     setDrawing(false);
 
+    ctx.closePath();
+
     const move: Move = {
-      path: moves,
+      path: tempMoves,
       options,
     };
 
     savedMoves.push(move);
+    tempMoves = [];
 
     socket.emit("draw", move);
 
-    moves = [];
-    handleEnd();
-  };
+    drawAllMoves(ctx, movesWithoutUser, savedMoves, users);
 
-  const handleDraw = (x: number, y: number) => {
-    if (!ctx || !drawing || blocked) {
-      return;
-    }
-    ctx.lineTo(getPos(x, movedX), getPos(y, movedY));
-    ctx.stroke();
-    moves.push([getPos(x, movedX), getPos(y, movedY)]);
+    handleEnd();
   };
 
   return {
     handleEndDrawing,
     handleDraw,
     handleStartDrawing,
-    handleUndo,
     drawing,
+    handleUndo,
   };
 };
 
@@ -112,20 +124,30 @@ export const useSocketDraw = (
   const setUsers = useSetRecoilState(usersAtom);
 
   useEffect(() => {
-    socket.on("joined", (roomJSON) => {
-      const room: Room = new Map(JSON.parse(roomJSON));
+    if (ctx) socket.emit("joined_room");
+  }, [ctx]);
 
-      room.forEach((userMoves, userId) => {
-        if (ctx) userMoves.forEach((move) => handleMove(move, ctx));
-        handleEnd();
+  useEffect(() => {
+    socket.on("room", (room, usersToParse) => {
+      if (!ctx) return;
 
+      const users = new Map<string, Move[]>(JSON.parse(usersToParse));
+
+      room.drawed.forEach((move) => {
+        handleMove(move, ctx);
+        movesWithoutUser.push(move);
+      });
+
+      users.forEach((userMoves, userId) => {
+        userMoves.forEach((move) => handleMove(move, ctx));
         setUsers((prevUsers) => ({ ...prevUsers, [userId]: userMoves }));
       });
+
+      handleEnd();
     });
 
     return () => {
-      socket.off("joined");
-
+      socket.off("room");
     };
   }, [ctx, handleEnd, setUsers]);
 
@@ -172,7 +194,7 @@ export const useSocketDraw = (
         newUsers[userId] = newUsers[userId].slice(0, -1);
 
         if (ctx) {
-          drawOnUndo(ctx, savedMoves, newUsers);
+          drawAllMoves(ctx, movesWithoutUser, savedMoves, newUsers);
           handleEnd();
         }
 

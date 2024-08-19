@@ -11,17 +11,16 @@ export const roomContext = createContext<{
 
 const RoomContextProvider = ({ children }: { children: ReactChild }) => {
   const setUsers = useSetRecoilState(usersAtom);
-  const userIds = useUserIds();
+  const usersIds = useUserIds();
+
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
   useEffect(() => {
-    socket.on("users_in_room", (newUsers) => {
-      newUsers.forEach((user) => {
-        if (!userIds.includes(user) && user !== socket.id)
-          setUsers((prevUsers) => ({ ...prevUsers, [user]: [] }));
-      });
+    socket.on("new_user", (newUser) => {
+        setUsers((prevUsers) => ({ ...prevUsers, [newUser]: [] }));
     });
+
     socket.on("user_disconnected", (userId) => {
       setUsers((prevUsers) => {
         const newUsers = { ...prevUsers };
@@ -31,10 +30,10 @@ const RoomContextProvider = ({ children }: { children: ReactChild }) => {
     });
 
     return () => {
-      socket.off("users_in_room");
+      socket.off("new_user");
       socket.off("user_disconnected");
     };
-  }, [setUsers, userIds]);
+  }, [setUsers, usersIds]);
 
   return (
     <roomContext.Provider value={{ x, y }}>{children}</roomContext.Provider>

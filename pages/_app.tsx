@@ -1,11 +1,23 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import Head from "next/head";
 import { RecoilRoot } from "recoil";
 
-export default function App({ Component, pageProps }: AppProps) {
+import ModalManager from "@/common/components/modal/components/ModalManager";
+
+const App = ({ Component, pageProps }: AppProps) => {
   return (
-  <RecoilRoot>
-    <Component {...pageProps} />;
-  </RecoilRoot>
-  ); 
-}
+    <>
+      <Head>
+        <title>Template</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <RecoilRoot>
+        <ModalManager />
+        <Component {...pageProps} />
+      </RecoilRoot>
+    </>
+  );
+};
+
+export default App;
