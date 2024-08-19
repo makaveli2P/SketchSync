@@ -43,6 +43,8 @@ nextApp.prepare().then(async () => {
   const leaveRoom = (roomId: string, socketId: string) => {
     const room = rooms.get(roomId)!;
 
+    if (!room) return;
+
     const userMoves = room.users.get(socketId)!;
 
     room.drawed.push(...userMoves);
@@ -127,7 +129,7 @@ nextApp.prepare().then(async () => {
 
     socket.on("disconnecting", () => {
       leaveRoom(getRoomId(), socket.id);
-      
+
       io.to(getRoomId()).emit("user_disconnected", socket.id);
 
       console.log("disconnected from server");

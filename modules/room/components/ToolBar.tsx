@@ -1,6 +1,6 @@
 import { useSetOptions } from "@/common/recoil/options/options.hooks";
 
-export const ToolBar = () => {
+const ToolBar = () => {
   const setOptions = useSetOptions();
 
   return (
@@ -28,3 +28,5 @@ export const ToolBar = () => {
     </div>
   );
 };
+
+export default ToolBar;

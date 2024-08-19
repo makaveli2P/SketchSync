@@ -5,7 +5,7 @@ import { socket } from "@/common/lib/socket";
 import { motion } from "framer-motion";
 import { getPos } from "@/common/lib/getPos";
 
-export const MousePosition = () => {
+const MousePosition = () => {
   const prevPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const { x, y } = useBoardPosition();
@@ -31,3 +31,5 @@ export const MousePosition = () => {
     </motion.div>
   );
 };
+
+export default MousePosition;
