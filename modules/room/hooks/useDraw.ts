@@ -1,10 +1,11 @@
-import { useMyMoves } from "@/common/recoil/room";
-import { useBoardPosition } from "./useBoardPosition";
-import { useUsers } from "@/common/recoil/users";
-import { useOptions } from "@/common/recoil/options";
 import { useCallback, useEffect, useState } from "react";
-import { socket } from "@/common/lib/socket";
+
 import { getPos } from "@/common/lib/getPos";
+import { socket } from "@/common/lib/socket";
+import { useOptionsValue } from "@/common/recoil/options";
+import { useMyMoves } from "@/common/recoil/room";
+
+import { useBoardPosition } from "./useBoardPosition";
 
 let tempMoves: [number, number][] = [];
 
@@ -13,13 +14,11 @@ export const useDraw = (
   blocked: boolean
 ) => {
   const { handleRemoveMyMove, handleAddMyMove } = useMyMoves();
-  const users = useUsers();
-
   const boardPosition = useBoardPosition();
   const movedX = boardPosition.x;
   const movedY = boardPosition.y;
 
-  const options = useOptions();
+  const options = useOptionsValue();
 
   const [drawing, setDrawing] = useState(false);
 

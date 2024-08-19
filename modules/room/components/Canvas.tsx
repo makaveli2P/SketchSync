@@ -21,7 +21,7 @@ const Canvas = () => {
 
   const [ctx, setCtx] = useState<CanvasRenderingContext2D>();
   const [dragging, setDragging] = useState(false);
-  const [, setMovedMiniMap] = useState(false);
+  const [, setMovedMinimap] = useState(false);
 
   const { width, height } = useViewportSize();
 
@@ -130,7 +130,7 @@ const Canvas = () => {
       <MiniMap
         ref={smallCanvasRef}
         dragging={dragging}
-        setMovedMiniMap={setMovedMiniMap}
+        setMovedMinimap={setMovedMinimap}
       />
     </div>
   );
