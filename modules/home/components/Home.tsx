@@ -10,6 +10,7 @@ import NotFoundModal from "../modals/NotFound";
 
 const Home = () => {
   const [roomId, setRoomId] = useState("");
+  const [username, setUsername] = useState("");
   const setAtomRoomId = useSetRoomId();
 
   const router = useRouter();
@@ -40,13 +41,13 @@ const Home = () => {
   }, [openModal, roomId, router, setAtomRoomId]);
 
   const handleCreateRoom = () => {
-    socket.emit("create_room");
+    socket.emit("create_room", username);
   };
 
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    socket.emit("join_room", roomId);
+    socket.emit("join_room", roomId, username);
   };
 
   return (
@@ -56,12 +57,25 @@ const Home = () => {
       </h1>
       <h3 className="text-2xl">Real Time Whiteboard</h3>
 
+      <div className="mt-10 flex flex-col gap-2">
+        <label className="self-start font-bold leading-tight">
+          Enter Your Name:
+        </label>
+        <input
+          className="rounded-xl border p-5 py-1"
+          id="room-id"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        ></input>
+      </div>
+
       <form
-        className="mt-8 flex flex-col items-center gap-2"
+        className="flex flex-col items-center gap-3"
         onSubmit={handleJoinRoom}
       >
         <label htmlFor="room-id" className="self-start font-bold leading-tight">
-          Enter Room ID
+          Enter Room ID:
         </label>
         <input
           className="rounded-xl border p-5 py-1"
@@ -77,6 +91,12 @@ const Home = () => {
           Join
         </button>
       </form>
+      <div className="my-8 flex w-96 items-center gap-2">
+        <div className="h-px w-full bg-zinc-200" />
+        <p className="text-zinc-400">or</p>
+        <div className="h-px w-full bg-zinc-200" />
+      </div>
+
       <div className="mt-8 flex flex-col items-center gap-2">
         <h5 className="self-start font-bold leading-tight">Create New Room</h5>
         <button

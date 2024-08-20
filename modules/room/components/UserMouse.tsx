@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import { useBoardPosition } from "../hooks/useBoardPosition";
-import { socket } from "@/common/lib/socket";
+
 import { motion } from "framer-motion";
 import { BsCursorFill } from "react-icons/bs";
 
-export const UserMouse = ({ userId }: { userId: string }) => {
+import { socket } from "@/common/lib/socket";
+
+import { useBoardPosition } from "../hooks/useBoardPosition";
+
+const UserMouse = ({
+  userId,
+  username,
+}: {
+  userId: string;
+  username: string;
+}) => {
   const boardPos = useBoardPosition();
   const [x, setX] = useState(boardPos.x.get());
   const [y, setY] = useState(boardPos.y.get());
@@ -41,7 +50,10 @@ export const UserMouse = ({ userId }: { userId: string }) => {
       animate={{ x: pos.x + x, y: pos.y + y }}
       transition={{ duration: 0.1, ease: "linear" }}
     >
-        <BsCursorFill className="-rotate-90" />
+      <BsCursorFill className="-rotate-90" />
+      <p className="ml-2">{username}</p>
     </motion.div>
   );
 };
+
+export default UserMouse;
