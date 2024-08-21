@@ -10,7 +10,7 @@ const NotFoundModal = ({ id }: { id: string }) => {
       <button onClick={closeModal} className="absolute top-5 right-5">
         <AiOutlineClose />
       </button>
-      <h2 className="text-lg font-bold">No room with ID ({id}) found!</h2>
+      <h2 className="text-lg font-bold">Room with ID "{id}" not found!</h2>
       <h3>Check the room ID and try joining the room again.</h3>
     </div>
   );

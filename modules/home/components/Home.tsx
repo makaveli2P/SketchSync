@@ -91,6 +91,7 @@ const Home = () => {
           Join
         </button>
       </form>
+      
       <div className="my-8 flex w-96 items-center gap-2">
         <div className="h-px w-full bg-zinc-200" />
         <p className="text-zinc-400">or</p>

@@ -5,7 +5,7 @@ import { useMotionValue, motion } from "framer-motion";
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
 import { useViewportSize } from "@/common/hooks/useViewportSize";
 
-import { useBoardPosition } from "../hooks/useBoardPosition";
+import { useBoardPosition } from "../../hooks/useBoardPosition";
 
 const MiniMap = forwardRef<
   HTMLCanvasElement,
@@ -38,7 +38,7 @@ const MiniMap = forwardRef<
 
   return (
     <div
-      className="absolute right-10 top-10 z-30 rounded-lg bg-zinc-200"
+      className="absolute right-10 top-10 z-30 overflow-hidden rounded-lg bg-zinc-50"
       style={{
         width: CANVAS_SIZE.width / 7,
         height: CANVAS_SIZE.height / 7,
@@ -58,7 +58,7 @@ const MiniMap = forwardRef<
         dragTransition={{ power: 0, timeConstant: 0 }}
         onDragStart={() => setMovedMinimap((prev) => !prev)}
         onDragEnd={() => setMovedMinimap((prev) => !prev)}
-        className="absolute top-0 left-0 cursor-grab border-2 rounded-lg border-red-500"
+        className="absolute top-0 left-0 cursor-grab rounded-lg border-2 border-red-500"
         style={{
           width: width / 7,
           height: height / 7,
