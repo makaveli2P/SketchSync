@@ -14,9 +14,11 @@ import { useDraw } from "../../hooks/useDraw";
 import { useSocketDraw } from "../../hooks/useSocketDraw";
 import MiniMap from "./Minimap";
 import Background from "./Background";
+import { useOptionsValue } from "@/common/recoil/options";
 
 const Canvas = ({ undoRef }: { undoRef: RefObject<HTMLButtonElement> }) => {
   const room = useRoom();
+  const options = useOptionsValue();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const smallCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -89,10 +91,10 @@ const Canvas = ({ undoRef }: { undoRef: RefObject<HTMLButtonElement> }) => {
 
   useEffect(() => {
     if (ctx) {
-      drawAllMoves(ctx, room);
+      drawAllMoves(ctx, room, options);
       copyCanvasToSmall();
     }
-  }, [ctx, room]);
+  }, [ctx, room, options]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -117,7 +119,7 @@ const Canvas = ({ undoRef }: { undoRef: RefObject<HTMLButtonElement> }) => {
         onMouseDown={(e) => handleStartDrawing(e.clientX, e.clientY)}
         onMouseUp={handleEndDrawing}
         onMouseMove={(e) => {
-          handleDraw(e.clientX, e.clientY);
+          handleDraw(e.clientX, e.clientY, e.shiftKey);
         }}
         onTouchStart={(e) => {
           handleStartDrawing(
