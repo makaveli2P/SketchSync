@@ -1,21 +1,19 @@
-import { Dispatch, forwardRef, SetStateAction, useEffect, useRef } from "react";
-
+import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { useMotionValue, motion } from "framer-motion";
-
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
 import { useViewportSize } from "@/common/hooks/useViewportSize";
-
 import { useBoardPosition } from "../../hooks/useBoardPosition";
+import { useRefs } from "../../hooks/useRefs";
 
-const MiniMap = forwardRef<
-  HTMLCanvasElement,
-  {
-    dragging: boolean;
-    setMovedMinimap: Dispatch<SetStateAction<boolean>>;
-  }
->(({ dragging, setMovedMinimap }, ref) => {
+const MiniMap = ({
+  dragging,
+  setMovedMinimap,
+}: {
+  dragging: boolean;
+  setMovedMinimap: Dispatch<SetStateAction<boolean>>;
+}) => {
   const { x, y } = useBoardPosition();
-
+  const { minimapRef } = useRefs();
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useViewportSize();
 
@@ -23,16 +21,17 @@ const MiniMap = forwardRef<
   const miniY = useMotionValue(0);
 
   useEffect(() => {
-    miniX.onChange((newX) => {
+    const unsubscribeX = miniX.on("change", (newX) => {
       if (!dragging) x.set(-newX * 7);
     });
-    miniY.onChange((newY) => {
+
+    const unsubscribeY = miniY.on("change", (newY) => {
       if (!dragging) y.set(-newY * 7);
     });
 
     return () => {
-      miniX.clearListeners();
-      miniY.clearListeners();
+      unsubscribeX();
+      unsubscribeY();
     };
   }, [dragging, miniX, miniY, x, y]);
 
@@ -46,7 +45,7 @@ const MiniMap = forwardRef<
       ref={containerRef}
     >
       <canvas
-        ref={ref}
+        ref={minimapRef}
         width={CANVAS_SIZE.width}
         height={CANVAS_SIZE.height}
         className="h-full w-full"
@@ -70,8 +69,6 @@ const MiniMap = forwardRef<
       />
     </div>
   );
-});
-
-MiniMap.displayName = "MiniMap";
+};
 
 export default MiniMap;

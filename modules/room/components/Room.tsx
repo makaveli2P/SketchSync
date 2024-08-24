@@ -8,6 +8,7 @@ import ToolBar from "./toolbar/ToolBar";
 import NameInput from "./NameInput";
 import UserList from "./UserList";
 import Chat from "./chat/Chat";
+import MoveImage from "./board/MoveImage";
 
 const Room = () => {
   const room = useRoom();
@@ -18,6 +19,7 @@ const Room = () => {
       <div className="relative h-full w-full overflow-hidden">
         <UserList />
         <ToolBar />
+        <MoveImage />
         <Canvas />
         <MousePosition />
         <MouseRenderer />
