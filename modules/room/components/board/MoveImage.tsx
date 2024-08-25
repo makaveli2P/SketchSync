@@ -33,7 +33,7 @@ const MoveImage = () => {
       options: {
         lineWidth: 1,
         lineColor: "#000",
-        erase: false,
+        mode: "draw",
         shape: "image",
       },
       timestamp: 0,
