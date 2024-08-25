@@ -40,7 +40,8 @@ export const useDraw = (blocked: boolean) => {
       ctx.lineCap = "round";
       ctx.lineWidth = options.lineWidth;
       ctx.strokeStyle = options.lineColor;
-      if (options.erase) ctx.globalCompositeOperation = "destination-out";
+      if (options.mode === "eraser")
+        ctx.globalCompositeOperation = "destination-out";
       else ctx.globalCompositeOperation = "source-over";
     }
   };
@@ -65,12 +66,13 @@ export const useDraw = (blocked: boolean) => {
     const finalY = getPos(y, movedY);
 
     setDrawing(true);
-
     setCtxOptions();
 
-    ctx.beginPath();
-    ctx.lineTo(finalX, finalY);
-    ctx.stroke();
+    if (options.shape === "line" && options.mode !== "select") {
+      ctx.beginPath();
+      ctx.lineTo(finalX, finalY);
+      ctx.stroke();
+    }
 
     tempMoves.push([finalX, finalY]);
   };
@@ -80,22 +82,26 @@ export const useDraw = (blocked: boolean) => {
 
     const finalX = getPos(x, movedX);
     const finalY = getPos(y, movedY);
+    drawAndSet();
 
+    if (options.mode === "select") {
+      ctx.fillStyle = "rgb(0,0,0,0.3)";
+
+      drawRect(ctx, tempMoves[0], finalX, finalY, shift, true);
+      return;
+    }
     switch (options.shape) {
       case "line":
         if (shift) {
           tempMoves = tempMoves.slice(0, 1);
-          drawAndSet();
         }
         drawLine(ctx, tempMoves[0], finalX, finalY, shift);
         tempMoves.push([finalX, finalY]);
         break;
       case "circle":
-        drawAndSet();
         tempCircle = drawCircle(ctx, tempMoves[0], finalX, finalY, shift);
         break;
       case "rect":
-        drawAndSet();
         tempSize = drawRect(ctx, tempMoves[0], finalX, finalY, shift);
         break;
       default:
@@ -123,13 +129,19 @@ export const useDraw = (blocked: boolean) => {
       path: tempMoves,
       options,
       timestamp: 0,
-      eraser: options.erase,
+      eraser: options.mode === "eraser",
       id: "",
     };
 
     tempMoves = [];
     tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
     tempSize = { width: 0, height: 0 };
+
+    if (options.mode === "select") {
+      drawAndSet();
+      tempImageData = undefined;
+      return;
+    }
     tempImageData = undefined;
 
     socket.emit("draw", move);

@@ -1,14 +1,12 @@
-import { BsThreeDots } from "react-icons/bs";
-import { FaUndo } from "react-icons/fa";
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
 import { HiOutlineDownload } from "react-icons/hi";
 import ColorPicker from "./ColorPicker";
 import LineWidthPicker from "./LineWidthPicker";
-import Eraser from "./Eraser";
 import ShapeSelector from "./ShapeSelector";
 import { useRefs } from "../../hooks/useRefs";
-import ImageChoser from "./ImageChoser";
+import ImagePicker from "./ImagePicker";
 import HistoryBtns from "./HistoryBtns";
+import ModePicker from "./ModePicker";
 
 const ToolBar = () => {
   const { canvasRef, bgRef, undoRef } = useRefs();
@@ -43,11 +41,9 @@ const ToolBar = () => {
       <ColorPicker />
       <ShapeSelector />
       <LineWidthPicker />
-      <Eraser />
-      <ImageChoser />
-      <button className="text-xl">
-        <BsThreeDots />
-      </button>
+      <ModePicker />
+      <ImagePicker />
+
       <button className="text-xl" onClick={handleDownload}>
         <HiOutlineDownload />
       </button>
