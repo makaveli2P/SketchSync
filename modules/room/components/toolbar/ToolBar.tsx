@@ -8,6 +8,7 @@ import Eraser from "./Eraser";
 import ShapeSelector from "./ShapeSelector";
 import { useRefs } from "../../hooks/useRefs";
 import ImageChoser from "./ImageChoser";
+import HistoryBtns from "./HistoryBtns";
 
 const ToolBar = () => {
   const { canvasRef, bgRef, undoRef } = useRefs();
@@ -37,9 +38,7 @@ const ToolBar = () => {
         transform: "translateY(-50%)",
       }}
     >
-      <button className="text-xl" ref={undoRef}>
-        <FaUndo />
-      </button>
+      <HistoryBtns />
       <div className="h-px w-full bg-white" />
       <ColorPicker />
       <ShapeSelector />

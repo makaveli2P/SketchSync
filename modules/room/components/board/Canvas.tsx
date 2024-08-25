@@ -16,7 +16,7 @@ import Background from "./Background";
 import { useRefs } from "../../hooks/useRefs";
 
 const Canvas = () => {
-  const { canvasRef, bgRef, undoRef } = useRefs();
+  const { canvasRef, bgRef, undoRef, redoRef } = useRefs();
 
   const [ctx, setCtx] = useState<CanvasRenderingContext2D>();
   const [dragging, setDragging] = useState(false);
@@ -26,7 +26,7 @@ const Canvas = () => {
 
   const { x, y } = useBoardPosition();
 
-  const { handleUndo } = useMoveHandlers();
+  const { handleUndo, handleRedo } = useMoveHandlers();
 
   useKeyPressEvent("Control", (e) => {
     if (e.ctrlKey && !dragging) {
@@ -53,14 +53,17 @@ const Canvas = () => {
     window.addEventListener("keyup", handleKeyUp);
 
     const undoBtn = undoRef.current;
+    const redoBtn = redoRef.current;
 
     undoBtn?.addEventListener("click", handleUndo);
+    redoBtn?.addEventListener("click", handleRedo);
 
     return () => {
       window.removeEventListener("keyup", handleKeyUp);
       undoBtn?.removeEventListener("click", handleUndo);
+      redoBtn?.removeEventListener("click", handleRedo);
     };
-  }, [dragging, handleUndo, undoRef, canvasRef]);
+  }, [dragging, handleUndo, undoRef, handleRedo, redoRef, canvasRef]);
 
   useEffect(() => {
     if (ctx) socket.emit("joined_room");

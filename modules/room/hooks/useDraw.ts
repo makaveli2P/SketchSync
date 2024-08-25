@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getPos } from "@/common/lib/getPos";
 import { socket } from "@/common/lib/socket";
 import { useOptionsValue } from "@/common/recoil/options";
+import { useSetSavedMoves } from "@/common/recoil/savedMoves/savedMoves.hooks";
 
 import { useBoardPosition } from "./useBoardPosition";
 import { drawCircle, drawLine, drawRect } from "../helpers/Canvas.helpers";
@@ -18,6 +19,7 @@ export const useDraw = (blocked: boolean) => {
   const { canvasRef } = useRefs();
 
   const boardPosition = useBoardPosition();
+  const { clearSavedMoves } = useSetSavedMoves();
   const movedX = boardPosition.x;
   const movedY = boardPosition.y;
 
@@ -131,6 +133,7 @@ export const useDraw = (blocked: boolean) => {
     tempImageData = undefined;
 
     socket.emit("draw", move);
+    clearSavedMoves();
   };
 
   return {

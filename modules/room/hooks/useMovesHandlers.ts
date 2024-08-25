@@ -1,4 +1,5 @@
 import { useMyMoves, useRoom } from "@/common/recoil/room";
+import { useSetSavedMoves } from "@/common/recoil/savedMoves/savedMoves.hooks";
 import { useEffect, useMemo, useState } from "react";
 import { socket } from "@/common/lib/socket";
 import { useRefs } from "./useRefs";
@@ -9,6 +10,7 @@ export const useMoveHandlers = () => {
   const { canvasRef, minimapRef } = useRefs();
   const room = useRoom();
   const { handleAddMyMove, handleRemoveMyMove } = useMyMoves();
+  const { addSavedMove, removeSavedMove } = useSetSavedMoves();
 
   const [ctx, setCtx] = useState<CanvasRenderingContext2D>();
 
@@ -153,28 +155,44 @@ export const useMoveHandlers = () => {
 
   const handleUndo = () => {
     if (ctx) {
-      handleRemoveMyMove();
-      socket.emit("undo");
+      const move = handleRemoveMyMove();
+      if (move) {
+        addSavedMove(move);
+        socket.emit("undo");
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (ctx) {
+      const move = removeSavedMove();
+
+      if (move) {
+        socket.emit("draw", move);
+      }
     }
   };
 
   useEffect(() => {
-    const handleUndoKeyboard = (e: KeyboardEvent) => {
+    const handleUndoRedoKeyboard = (e: KeyboardEvent) => {
       if (e.key === "z" && e.ctrlKey) {
         handleUndo();
+      } else if (e.key === "y" && e.ctrlKey) {
+        handleRedo();
       }
     };
 
-    document.addEventListener("keydown", handleUndoKeyboard);
+    document.addEventListener("keydown", handleUndoRedoKeyboard);
 
     return () => {
-      document.removeEventListener("keydown", handleUndoKeyboard);
+      document.removeEventListener("keydown", handleUndoRedoKeyboard);
     };
-  }, [handleUndo]);
+  }, [handleUndo, handleRedo]);
 
   return {
     drawAllMoves,
     drawMove,
     handleUndo,
+    handleRedo,
   };
 };
