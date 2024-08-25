@@ -10,10 +10,11 @@ import { useRefs } from "./useRefs";
 
 let tempMoves: [number, number][] = [];
 
-let tempRadius = 0;
+let tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
 let tempSize = { width: 0, height: 0 };
+let tempImageData: ImageData | undefined;
 
-export const useDraw = (blocked: boolean, drawAllMoves: () => void) => {
+export const useDraw = (blocked: boolean) => {
   const { canvasRef } = useRefs();
 
   const boardPosition = useBoardPosition();
@@ -43,8 +44,16 @@ export const useDraw = (blocked: boolean, drawAllMoves: () => void) => {
   };
 
   const drawAndSet = () => {
-    drawAllMoves;
-    setCtxOptions;
+    if (!tempImageData) {
+      tempImageData = ctx?.getImageData(
+        0,
+        0,
+        ctx.canvas.width,
+        ctx.canvas.height
+      );
+    }
+
+    if (tempImageData) ctx?.putImageData(tempImageData, 0, 0);
   };
 
   const handleStartDrawing = (x: number, y: number) => {
@@ -81,7 +90,7 @@ export const useDraw = (blocked: boolean, drawAllMoves: () => void) => {
         break;
       case "circle":
         drawAndSet();
-        tempRadius = drawCircle(ctx, tempMoves[0], finalX, finalY);
+        tempCircle = drawCircle(ctx, tempMoves[0], finalX, finalY, shift);
         break;
       case "rect":
         drawAndSet();
@@ -99,20 +108,27 @@ export const useDraw = (blocked: boolean, drawAllMoves: () => void) => {
 
     ctx.closePath();
 
-    if (options.shape !== "circle") tempRadius = 0;
-    if (options.shape !== "rect") tempSize = { width: 0, height: 0 };
-
     const move: Move = {
-      ...tempSize,
-      radius: tempRadius,
+      rect: {
+        ...tempSize,
+      },
+      circle: {
+        ...tempCircle,
+      },
+      img: {
+        base64: "",
+      },
       path: tempMoves,
       options,
       timestamp: 0,
       eraser: options.erase,
-      base64: "",
+      id: "",
     };
 
     tempMoves = [];
+    tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
+    tempSize = { width: 0, height: 0 };
+    tempImageData = undefined;
 
     socket.emit("draw", move);
   };

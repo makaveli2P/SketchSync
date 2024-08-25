@@ -1,9 +1,31 @@
-import Resizer from "react-image-file-resizer";
 import { BsFillImageFill } from "react-icons/bs";
+import { useEffect } from "react";
+import { optimizeImage } from "@/common/lib/optimizeImage";
 import { useMoveImage } from "../../hooks/useMoveImage";
 
 const ImageChoser = () => {
   const { setMoveImage } = useMoveImage();
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (const item of items) {
+          if (item.type.includes("image")) {
+            const file = item.getAsFile();
+            if (file)
+              optimizeImage(file, (uri) => setMoveImage(uri));
+          }
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, [setMoveImage]);
+   
   const handleImageInput = () => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -13,18 +35,7 @@ const ImageChoser = () => {
     fileInput.addEventListener("change", () => {
       if (fileInput && fileInput.files) {
         const file = fileInput.files[0];
-        Resizer.imageFileResizer(
-          file,
-          700,
-          700,
-          "WEBP",
-          100,
-          0,
-          (uri) => {
-            setMoveImage(uri.toString());
-          },
-          "base64"
-        );
+        optimizeImage(file, (uri) => setMoveImage(uri))
       }
     });
   };

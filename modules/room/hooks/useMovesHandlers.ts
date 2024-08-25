@@ -45,70 +45,82 @@ export const useMoveHandlers = () => {
     }
   };
 
-  const drawMove = (move: Move) =>
-    new Promise((resolve) => {
-      const { path } = move;
-      if (!ctx && !path.length) {
-        resolve("bye");
-        return;
-      }
+  const drawMove = (move: Move, image?: HTMLImageElement) => {
+    const { path } = move;
+    if (!ctx && !path.length) {
+      return;
+    }
 
-      const moveOptions = move.options;
+    const moveOptions = move.options;
 
-      if (moveOptions.shape === "image") {
-        const img = new Image();
-        img.src = move.base64;
-        img.addEventListener("load", () => {
-          ctx?.drawImage(img, path[0][0], path[0][1]);
-          copyCanvasToSmall();
+    if (moveOptions.shape === "image" && image) {
+      ctx?.drawImage(image, path[0][0], path[0][1]);
+    }
 
-          resolve("bye");
+    ctx!.lineWidth = moveOptions.lineWidth;
+    ctx!.strokeStyle = moveOptions.lineColor;
+    if (move.eraser) ctx!.globalCompositeOperation = "destination-out";
+    else ctx!.globalCompositeOperation = "source-over";
+
+    switch (moveOptions.shape) {
+      case "line":
+        ctx?.beginPath();
+        path.forEach(([x, y]) => {
+          ctx?.lineTo(x, y);
         });
-        return;
+        ctx?.stroke();
+        ctx?.closePath();
+        break;
+      case "circle": {
+        const { cX, cY, radiusX, radiusY } = move.circle;
+        ctx?.beginPath();
+        ctx?.ellipse(cX, cY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        ctx?.stroke();
+        ctx?.closePath();
+        break;
+      }
+      case "rect": {
+        const { width, height } = move.rect;
+        ctx?.beginPath();
+        ctx?.rect(path[0][0], path[0][1], width, height);
+        ctx?.stroke();
+        ctx?.closePath();
+        break;
       }
 
-      ctx!.lineWidth = moveOptions.lineWidth;
-      ctx!.strokeStyle = moveOptions.lineColor;
-      if (move.eraser) ctx!.globalCompositeOperation = "destination-out";
+      default:
+        break;
+    }
 
-      switch (moveOptions.shape) {
-        case "line":
-          ctx?.beginPath();
-          path.forEach(([x, y]) => {
-            ctx?.lineTo(x, y);
-          });
-          ctx?.stroke();
-          ctx?.closePath();
-          break;
-        case "circle":
-          ctx?.beginPath();
-          ctx?.arc(path[0][0], path[0][1], move.radius, 0, 2 * Math.PI);
-          ctx?.stroke();
-          ctx?.closePath();
-          break;
-        case "rect":
-          ctx?.beginPath();
-          ctx?.rect(path[0][0], path[0][1], move.width, move.height);
-          ctx?.stroke();
-          ctx?.closePath();
-
-        default:
-          break;
-      }
-
-      copyCanvasToSmall();
-
-      resolve("bye");
-    });
+    copyCanvasToSmall();
+  };
 
   const drawAllMoves = async () => {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    for (const move of sortedMoves) {
-      await drawMove(move);
-    }
+    const images = await Promise.all(
+      sortedMoves
+        .filter((move) => move.options.shape === "image")
+        .map((move) => {
+          return new Promise<HTMLImageElement>((resolve) => {
+            const img = new Image();
+            img.src = move.img.base64;
+            img.id = move.id;
+            img.addEventListener("load", () => resolve(img));
+          });
+        })
+    );
+
+    sortedMoves.forEach((move) => {
+      if (move.options.shape === "image") {
+        const img = images.find((image) => image.id === move.id);
+        if (img) drawMove(move, img);
+      } else drawMove(move);
+    });
+
+    copyCanvasToSmall();
   };
 
   useEffect(() => {
@@ -125,7 +137,13 @@ export const useMoveHandlers = () => {
     if (prevMovesLength >= sortedMoves.length || !prevMovesLength) {
       drawAllMoves();
     } else {
-      drawMove(sortedMoves[sortedMoves.length - 1]);
+      const lastMove = sortedMoves[sortedMoves.length - 1];
+
+      if (lastMove.options.shape === "image") {
+        const img = new Image();
+        img.src = lastMove.img.base64;
+        img.addEventListener("load", () => drawMove(lastMove, img));
+      } else drawMove(lastMove);
     }
 
     return () => {

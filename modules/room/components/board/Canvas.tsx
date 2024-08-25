@@ -26,7 +26,7 @@ const Canvas = () => {
 
   const { x, y } = useBoardPosition();
 
-  const { handleUndo, drawAllMoves } = useMoveHandlers();
+  const { handleUndo } = useMoveHandlers();
 
   useKeyPressEvent("Control", (e) => {
     if (e.ctrlKey && !dragging) {
@@ -34,10 +34,8 @@ const Canvas = () => {
     }
   });
 
-  const { handleEndDrawing, handleDraw, handleStartDrawing, drawing } = useDraw(
-    dragging,
-    drawAllMoves
-  );
+  const { handleEndDrawing, handleDraw, handleStartDrawing, drawing } =
+    useDraw(dragging);
 
   useSocketDraw(ctx, drawing);
 

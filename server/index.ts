@@ -5,7 +5,8 @@ import {} from "@/common/types/global";
 import express from "express";
 import next, { NextApiHandler } from "next";
 import { Server } from "socket.io";
-import { socket } from "@/common/lib/socket";
+
+import { uuid } from "uuidv4";
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const dev = process.env.NODE_ENV !== "production";
@@ -134,6 +135,9 @@ nextApp.prepare().then(async () => {
       const roomId = getRoomId();
 
       const timestamp = Date.now();
+
+      move.id = uuid();
+
       addMove(roomId, socket.id, { ...move, timestamp });
 
       io.to(socket.id).emit("your_move", { ...move, timestamp });
