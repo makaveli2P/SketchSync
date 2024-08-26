@@ -1,4 +1,5 @@
 import { HiOutlineDownload } from "react-icons/hi";
+import {IoIosShareAlt} from "react-icons/io"
 import {ImExit} from "react-icons/im"
 
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
@@ -52,6 +53,10 @@ const ToolBar = () => {
       <ModePicker />
       <ImagePicker />
       <div className="h-px w-full bg-white" />
+
+       <button className="text-xl" onClick={() => {}}>
+        <IoIosShareAlt />
+       </button>
 
       <button className="text-xl" onClick={handleDownload}>
         <HiOutlineDownload />

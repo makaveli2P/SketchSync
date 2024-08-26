@@ -29,6 +29,7 @@ const ShapeSelector = () => {
       <button
         className="btn-icon text-2xl"
         onClick={() => setOpened((prev) => !prev)}
+        disabled = {options.mode  === "select"}
       >
         {options.shape === "circle" && <BsCircle />}
         {options.shape === "rect" && <BiRectangle />}
@@ -46,13 +47,6 @@ const ShapeSelector = () => {
           >
             <button
               className="btn-icon text-2xl"
-              onClick={() => handleShapeChange("line")}
-            >
-              <CgShapeZigzag />
-            </button>
-
-            <button
-              className="btn-icon text-2xl"
               onClick={() => handleShapeChange("rect")}
             >
               <BiRectangle />
@@ -63,6 +57,12 @@ const ShapeSelector = () => {
               onClick={() => handleShapeChange("circle")}
             >
               <BsCircle />
+            </button>
+            <button
+              className="btn-icon text-2xl"
+              onClick={() => handleShapeChange("line")}
+            >
+              <CgShapeZigzag />
             </button>
           </motion.div>
         )}

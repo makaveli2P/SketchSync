@@ -15,7 +15,11 @@ const LineWidthPicker = () => {
 
   return (
     <div className="relative flex items-center" ref={ref}>
-      <button className="text-xl" onClick={() => setOpened(!opened)}>
+      <button
+        className="text-xl"
+        onClick={() => setOpened(!opened)}
+        disabled={options.mode === "select"}
+      >
         <BsBorderWidth />
       </button>
       <AnimatePresence>
