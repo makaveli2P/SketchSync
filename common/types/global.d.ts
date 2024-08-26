@@ -1,9 +1,12 @@
+import { RgbaColor } from "react-colorful";
+
 export declare global {
   type Shape = "line" | "circle" | "rect" | "image";
   type CtxMode = "eraser" | "draw" | "select";
   interface CtxOptions {
     lineWidth: number;
-    lineColor: string;
+    lineColor: RgbaColor;
+    fillColor: RgbaColor;
     shape: Shape;
     mode: CtxMode;
     selection: { x: number; y: number; width: number; height: number } | null;
@@ -19,7 +22,6 @@ export declare global {
     rect: {
       width: number;
       height: number;
-      fill?: boolean;
     };
     img: {
       base64: string;

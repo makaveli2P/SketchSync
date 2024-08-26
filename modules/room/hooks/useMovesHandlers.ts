@@ -5,10 +5,11 @@ import { socket } from "@/common/lib/socket";
 import { useRefs } from "./useRefs";
 import { useCtx } from "./useCtx";
 import { useSelection } from "./useSelection";
+import { getStringFromRgba } from "@/common/lib/rgba";
 
 let prevMovesLength = 0;
 
-export const useMoveHandlers = () => {
+export const useMoveHandlers = (clearOnYourMove: () => void) => {
   const { canvasRef, minimapRef } = useRefs();
   const room = useRoom();
   const { handleAddMyMove, handleRemoveMyMove } = useMyMoves();
@@ -57,7 +58,8 @@ export const useMoveHandlers = () => {
     }
 
     ctx!.lineWidth = moveOptions.lineWidth;
-    ctx!.strokeStyle = moveOptions.lineColor;
+    ctx!.strokeStyle = getStringFromRgba(moveOptions.lineColor);
+    ctx!.fillStyle = getStringFromRgba(moveOptions.fillColor);
     if (moveOptions.mode === "eraser")
       ctx!.globalCompositeOperation = "destination-out";
     else ctx!.globalCompositeOperation = "source-over";
@@ -76,19 +78,16 @@ export const useMoveHandlers = () => {
         ctx?.beginPath();
         ctx?.ellipse(cX, cY, radiusX, radiusY, 0, 0, 2 * Math.PI);
         ctx?.stroke();
+        ctx?.fill();
         ctx?.closePath();
         break;
       }
       case "rect": {
         const { width, height } = move.rect;
         ctx?.beginPath();
-        if (move.rect.fill) {
-          ctx?.fillRect(path[0][0], path[0][1], width, height);
-          ctx?.fill();
-        } else {
-          ctx?.rect(path[0][0], path[0][1], width, height);
-          ctx?.stroke();
-        }
+        ctx?.rect(path[0][0], path[0][1], width, height);
+        ctx?.stroke();
+        ctx?.fill();
         ctx?.closePath();
         break;
       }
@@ -132,13 +131,14 @@ export const useMoveHandlers = () => {
 
   useEffect(() => {
     socket.on("your_move", (move) => {
+      clearOnYourMove();
       handleAddMyMove(move);
     });
 
     return () => {
       socket.off("your_move");
     };
-  }, [handleAddMyMove]);
+  }, [handleAddMyMove, clearOnYourMove]);
 
   useEffect(() => {
     if (prevMovesLength >= sortedMoves.length || !prevMovesLength) {
