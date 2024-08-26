@@ -5,14 +5,15 @@ import { BsPencilFill } from "react-icons/bs";
 import { FaEraser } from "react-icons/fa";
 
 import { useOptions } from "@/common/recoil/options";
+import { useSetSelection } from "@/common/recoil/options/options.hooks";
 
 const ModePicker = () => {
   const [options, setOptions] = useOptions();
-//   const { clearSelection } = useSetSelection();
+  const { clearSelection } = useSetSelection();
 
-//   useEffect(() => {
-//     clearSelection();
-//   }, [options.mode]);
+  useEffect(() => {
+    clearSelection();
+  }, [options.mode]);
 
   return (
     <>

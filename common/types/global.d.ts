@@ -6,6 +6,7 @@ export declare global {
     lineColor: string;
     shape: Shape;
     mode: CtxMode;
+    selection: { x: number; y: number; width: number; height: number } | null;
   }
 
   interface Move {
@@ -18,6 +19,7 @@ export declare global {
     rect: {
       width: number;
       height: number;
+      fill?: boolean;
     };
     img: {
       base64: string;
@@ -25,7 +27,6 @@ export declare global {
     path: [number, number][];
     options: CtxOptions;
     timestamp: number;
-    eraser: boolean;
     id: string;
   }
 

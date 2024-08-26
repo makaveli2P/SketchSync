@@ -1,4 +1,5 @@
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+
 import { optionsAtom } from "./options.atoms";
 
 export const useOptionsValue = () => {
@@ -7,14 +8,33 @@ export const useOptionsValue = () => {
   return options;
 };
 
+export const useSetOptions = () => {
+  const setOptions = useSetRecoilState(optionsAtom);
+
+  return setOptions;
+};
+
 export const useOptions = () => {
   const options = useRecoilState(optionsAtom);
 
   return options;
 };
 
-export const useSetOptions = () => {
-  const setOpitons = useSetRecoilState(optionsAtom);
+export const useSetSelection = () => {
+  const setOptions = useSetOptions();
 
-  return setOpitons;
+  const setSelection = (rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => {
+    setOptions((prev) => ({ ...prev, selection: rect }));
+  };
+
+  const clearSelection = () => {
+    setOptions((prev) => ({ ...prev, selection: null }));
+  };
+
+  return { setSelection, clearSelection };
 };

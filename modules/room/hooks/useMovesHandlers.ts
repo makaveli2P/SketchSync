@@ -1,8 +1,10 @@
 import { useMyMoves, useRoom } from "@/common/recoil/room";
 import { useSetSavedMoves } from "@/common/recoil/savedMoves/savedMoves.hooks";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { socket } from "@/common/lib/socket";
 import { useRefs } from "./useRefs";
+import { useCtx } from "./useCtx";
+import { useSelection } from "./useSelection";
 
 let prevMovesLength = 0;
 
@@ -12,12 +14,7 @@ export const useMoveHandlers = () => {
   const { handleAddMyMove, handleRemoveMyMove } = useMyMoves();
   const { addSavedMove, removeSavedMove } = useSetSavedMoves();
 
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D>();
-
-  useEffect(() => {
-    const newCtx = canvasRef.current?.getContext("2d");
-    if (newCtx) setCtx(newCtx);
-  }, [canvasRef]);
+  const ctx = useCtx();
 
   const sortedMoves = useMemo(() => {
     const { usersMoves, movesWithoutUser, myMoves } = room;
@@ -61,7 +58,8 @@ export const useMoveHandlers = () => {
 
     ctx!.lineWidth = moveOptions.lineWidth;
     ctx!.strokeStyle = moveOptions.lineColor;
-    if (move.eraser) ctx!.globalCompositeOperation = "destination-out";
+    if (moveOptions.mode === "eraser")
+      ctx!.globalCompositeOperation = "destination-out";
     else ctx!.globalCompositeOperation = "source-over";
 
     switch (moveOptions.shape) {
@@ -84,8 +82,13 @@ export const useMoveHandlers = () => {
       case "rect": {
         const { width, height } = move.rect;
         ctx?.beginPath();
-        ctx?.rect(path[0][0], path[0][1], width, height);
-        ctx?.stroke();
+        if (move.rect.fill) {
+          ctx?.fillRect(path[0][0], path[0][1], width, height);
+          ctx?.fill();
+        } else {
+          ctx?.rect(path[0][0], path[0][1], width, height);
+          ctx?.stroke();
+        }
         ctx?.closePath();
         break;
       }
@@ -124,6 +127,8 @@ export const useMoveHandlers = () => {
 
     copyCanvasToSmall();
   };
+
+  useSelection(drawAllMoves);
 
   useEffect(() => {
     socket.on("your_move", (move) => {
@@ -175,11 +180,16 @@ export const useMoveHandlers = () => {
 
   useEffect(() => {
     const handleUndoRedoKeyboard = (e: KeyboardEvent) => {
-      if (e.key === "z" && e.ctrlKey) {
-        handleUndo();
+      if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
       } else if (e.key === "y" && e.ctrlKey) {
         handleRedo();
       }
+      e.preventDefault();
     };
 
     document.addEventListener("keydown", handleUndoRedoKeyboard);
