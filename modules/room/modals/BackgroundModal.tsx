@@ -25,14 +25,14 @@ const BackgroundModal = () => {
       if (lines) {
         ctx.lineWidth = 1;
         ctx.strokeStyle = mode === "dark" ? "#444" : "#ddd";
-        for (let i = 0; i < ctx.canvas.height; i += 25) {
+        for (let i = 0; i < ctx.canvas.height; i += 10) {
           ctx.beginPath();
           ctx.moveTo(0, i);
           ctx.lineTo(ctx.canvas.width, i);
           ctx.stroke();
         }
 
-        for (let i = 0; i < ctx.canvas.width; i += 25) {
+        for (let i = 0; i < ctx.canvas.width; i += 10) {
           ctx.beginPath();
           ctx.moveTo(i, 0);
           ctx.lineTo(i, ctx.canvas.height);

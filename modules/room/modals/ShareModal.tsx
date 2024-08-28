@@ -22,7 +22,7 @@ const ShareModal = () => {
       </button>
       <h2 className="text-2xl font-bold">Invite</h2>
       <h3>
-        Room ID: <p className="inline font-bold">{id}</p>
+        Room id: <p className="inline font-bold">{id}</p>
       </h3>
       <div className="relative mt-2">
         <input type="text" value={url} readOnly className="input sm:w-96" />

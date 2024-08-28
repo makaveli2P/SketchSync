@@ -1,21 +1,20 @@
 import { useEffect } from "react";
 
 import { socket } from "@/common/lib/socket";
-
 import { useSetUsers } from "@/common/recoil/room";
 
 export const useSocketDraw = (drawing: boolean) => {
   const { handleAddMoveToUser, handleRemoveMoveFromUser } = useSetUsers();
 
   useEffect(() => {
-    let movesToDrawLater: Move | undefined;
+    let moveToDrawLater: Move | undefined;
     let userIdLater = "";
 
     socket.on("user_draw", (move, userId) => {
       if (!drawing) {
         handleAddMoveToUser(userId, move);
       } else {
-        movesToDrawLater = move;
+        moveToDrawLater = move;
         userIdLater = userId;
       }
     });
@@ -23,8 +22,8 @@ export const useSocketDraw = (drawing: boolean) => {
     return () => {
       socket.off("user_draw");
 
-      if (movesToDrawLater && userIdLater) {
-        handleAddMoveToUser(userIdLater, movesToDrawLater);
+      if (moveToDrawLater && userIdLater) {
+        handleAddMoveToUser(userIdLater, moveToDrawLater);
       }
     };
   }, [drawing, handleAddMoveToUser]);
@@ -33,6 +32,7 @@ export const useSocketDraw = (drawing: boolean) => {
     socket.on("user_undo", (userId) => {
       handleRemoveMoveFromUser(userId);
     });
+
     return () => {
       socket.off("user_undo");
     };

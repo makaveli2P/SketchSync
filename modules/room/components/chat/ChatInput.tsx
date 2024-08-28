@@ -1,6 +1,8 @@
-import { socket } from "@/common/lib/socket";
 import { FormEvent, useState } from "react";
+
 import { AiOutlineSend } from "react-icons/ai";
+
+import { socket } from "@/common/lib/socket";
 
 const ChatInput = () => {
   const [msg, setMsg] = useState("");
@@ -9,6 +11,7 @@ const ChatInput = () => {
     e.preventDefault();
 
     socket.emit("send_msg", msg);
+
     setMsg("");
   };
 
@@ -19,7 +22,7 @@ const ChatInput = () => {
         value={msg}
         onChange={(e) => setMsg(e.target.value)}
       />
-      <button className="h-full w-10 bg-black" type="submit">
+      <button className="btn-icon h-full w-10 bg-black" type="submit">
         <AiOutlineSend />
       </button>
     </form>

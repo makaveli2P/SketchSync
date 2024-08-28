@@ -1,21 +1,26 @@
-import { useMyMoves, useRoom } from "@/common/recoil/room";
-import { useSetSavedMoves } from "@/common/recoil/savedMoves/savedMoves.hooks";
 import { useEffect, useMemo } from "react";
-import { socket } from "@/common/lib/socket";
-import { useRefs } from "./useRefs";
-import { useCtx } from "./useCtx";
-import { useSelection } from "./useSelection";
+
 import { getStringFromRgba } from "@/common/lib/rgba";
+import { socket } from "@/common/lib/socket";
+import { useBackground } from "@/common/recoil/background";
+import { useSetSelection } from "@/common/recoil/options";
+import { useMyMoves, useRoom } from "@/common/recoil/room";
+import { useSetSavedMoves } from "@/common/recoil/savedMoves";
+
+import { useCtx } from "./useCtx";
+import { useRefs } from "./useRefs";
+import { useSelection } from "./useSelection";
 
 let prevMovesLength = 0;
 
-export const useMoveHandlers = (clearOnYourMove: () => void) => {
-  const { canvasRef, minimapRef } = useRefs();
+export const useMovesHandlers = (clearOnYourMove: () => void) => {
+  const { canvasRef, minimapRef, bgRef } = useRefs();
   const room = useRoom();
   const { handleAddMyMove, handleRemoveMyMove } = useMyMoves();
   const { addSavedMove, removeSavedMove } = useSetSavedMoves();
-
   const ctx = useCtx();
+  const bg = useBackground();
+  const { clearSelection } = useSetSelection();
 
   const sortedMoves = useMemo(() => {
     const { usersMoves, movesWithoutUser, myMoves } = room;
@@ -30,10 +35,17 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
   }, [room]);
 
   const copyCanvasToSmall = () => {
-    if (canvasRef.current && minimapRef.current) {
+    if (canvasRef.current && minimapRef.current && bgRef.current) {
       const smallCtx = minimapRef.current.getContext("2d");
       if (smallCtx) {
         smallCtx.clearRect(0, 0, smallCtx.canvas.width, smallCtx.canvas.height);
+        smallCtx.drawImage(
+          bgRef.current,
+          0,
+          0,
+          smallCtx.canvas.width,
+          smallCtx.canvas.height
+        );
         smallCtx.drawImage(
           canvasRef.current,
           0,
@@ -45,50 +57,61 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => copyCanvasToSmall(), [bg]);
+
   const drawMove = (move: Move, image?: HTMLImageElement) => {
     const { path } = move;
-    if (!ctx && !path.length) {
-      return;
-    }
+
+    if (!ctx || !path.length) return;
 
     const moveOptions = move.options;
 
-    if (moveOptions.shape === "image" && image) {
-      ctx?.drawImage(image, path[0][0], path[0][1]);
-    }
+    if (moveOptions.mode === "select") return;
 
-    ctx!.lineWidth = moveOptions.lineWidth;
-    ctx!.strokeStyle = getStringFromRgba(moveOptions.lineColor);
-    ctx!.fillStyle = getStringFromRgba(moveOptions.fillColor);
+    ctx.lineWidth = moveOptions.lineWidth;
+    ctx.strokeStyle = getStringFromRgba(moveOptions.lineColor);
+    ctx.fillStyle = getStringFromRgba(moveOptions.fillColor);
     if (moveOptions.mode === "eraser")
-      ctx!.globalCompositeOperation = "destination-out";
-    else ctx!.globalCompositeOperation = "source-over";
+      ctx.globalCompositeOperation = "destination-out";
+    else ctx.globalCompositeOperation = "source-over";
+
+    if (moveOptions.shape === "image" && image)
+      ctx.drawImage(image, path[0][0], path[0][1]);
 
     switch (moveOptions.shape) {
-      case "line":
-        ctx?.beginPath();
+      case "line": {
+        ctx.beginPath();
         path.forEach(([x, y]) => {
-          ctx?.lineTo(x, y);
+          ctx.lineTo(x, y);
         });
-        ctx?.stroke();
-        ctx?.closePath();
-        break;
-      case "circle": {
-        const { cX, cY, radiusX, radiusY } = move.circle;
-        ctx?.beginPath();
-        ctx?.ellipse(cX, cY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-        ctx?.stroke();
-        ctx?.fill();
-        ctx?.closePath();
+
+        ctx.stroke();
+        ctx.closePath();
         break;
       }
+
+      case "circle": {
+        const { cX, cY, radiusX, radiusY } = move.circle;
+
+        ctx.beginPath();
+        ctx.ellipse(cX, cY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+        break;
+      }
+
       case "rect": {
         const { width, height } = move.rect;
-        ctx?.beginPath();
-        ctx?.rect(path[0][0], path[0][1], width, height);
-        ctx?.stroke();
-        ctx?.fill();
-        ctx?.closePath();
+
+        ctx.beginPath();
+
+        ctx.rect(path[0][0], path[0][1], width, height);
+        ctx.stroke();
+        ctx.fill();
+
+        ctx.closePath();
         break;
       }
 
@@ -133,12 +156,13 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
     socket.on("your_move", (move) => {
       clearOnYourMove();
       handleAddMyMove(move);
+      setTimeout(clearSelection, 100);
     });
 
     return () => {
       socket.off("your_move");
     };
-  }, [handleAddMyMove, clearOnYourMove]);
+  }, [clearOnYourMove, clearSelection, handleAddMyMove]);
 
   useEffect(() => {
     if (prevMovesLength >= sortedMoves.length || !prevMovesLength) {
@@ -156,18 +180,24 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
     return () => {
       prevMovesLength = sortedMoves.length;
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortedMoves]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleUndo = () => {
     if (ctx) {
       const move = handleRemoveMyMove();
-      if (move) {
+
+      if (move?.options.mode === "select") clearSelection();
+      else if (move) {
         addSavedMove(move);
         socket.emit("undo");
       }
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleRedo = () => {
     if (ctx) {
       const move = removeSavedMove();
@@ -180,16 +210,11 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
 
   useEffect(() => {
     const handleUndoRedoKeyboard = (e: KeyboardEvent) => {
-      if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
-        if (e.shiftKey) {
-          handleRedo();
-        } else {
-          handleUndo();
-        }
+      if (e.key === "z" && e.ctrlKey) {
+        handleUndo();
       } else if (e.key === "y" && e.ctrlKey) {
         handleRedo();
       }
-      e.preventDefault();
     };
 
     document.addEventListener("keydown", handleUndoRedoKeyboard);
@@ -199,10 +224,5 @@ export const useMoveHandlers = (clearOnYourMove: () => void) => {
     };
   }, [handleUndo, handleRedo]);
 
-  return {
-    drawAllMoves,
-    drawMove,
-    handleUndo,
-    handleRedo,
-  };
+  return { handleUndo, handleRedo };
 };

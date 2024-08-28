@@ -1,8 +1,12 @@
-import { useOptions } from "@/common/recoil/options";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
 import { BsBorderWidth } from "react-icons/bs";
 import { useClickAway } from "react-use";
+
+import { useOptions } from "@/common/recoil/options";
+
+import { ColorPickerAnimation } from "../../animations/ColorPicker.animations";
 
 const LineWidthPicker = () => {
   const [options, setOptions] = useOptions();
@@ -16,7 +20,7 @@ const LineWidthPicker = () => {
   return (
     <div className="relative flex items-center" ref={ref}>
       <button
-        className="text-xl"
+        className="btn-icon text-xl"
         onClick={() => setOpened(!opened)}
         disabled={options.mode === "select"}
       >
@@ -26,6 +30,7 @@ const LineWidthPicker = () => {
         {opened && (
           <motion.div
             className="absolute top-[6px] left-14 w-36"
+            variants={ColorPickerAnimation}
             initial="from"
             animate="to"
             exit="from"
@@ -35,12 +40,12 @@ const LineWidthPicker = () => {
               min={1}
               max={20}
               value={options.lineWidth}
-              onChange={(e) => {
+              onChange={(e) =>
                 setOptions((prev) => ({
                   ...prev,
                   lineWidth: parseInt(e.target.value, 10),
-                }));
-              }}
+                }))
+              }
               className="h-4 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
             />
           </motion.div>

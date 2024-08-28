@@ -1,15 +1,15 @@
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Image from "next/image";
+
 import { socket } from "@/common/lib/socket";
 import { useModal } from "@/common/recoil/modal";
 import { useSetRoomId } from "@/common/recoil/room";
 import NotFoundModal from "@/modules/home/modals/NotFound";
 
-import { useRouter } from "next/router";
-import { FormEvent, useEffect, useState } from "react";
-
 const NameInput = () => {
   const setRoomId = useSetRoomId();
   const { openModal } = useModal();
-
   const [name, setName] = useState("");
 
   const router = useRouter();
@@ -21,7 +21,6 @@ const NameInput = () => {
     socket.emit("check_room", roomId);
 
     socket.on("room_exists", (exists) => {
-      console.log("room_exists", exists);
       if (!exists) {
         router.push("/");
       }
@@ -45,40 +44,52 @@ const NameInput = () => {
     return () => {
       socket.off("joined", handleJoined);
     };
-  }, [router, setRoomId, openModal]);
+  }, [openModal, router, setRoomId]);
 
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     socket.emit("join_room", roomId, name);
   };
 
   return (
-    <form className="flex flex-col items-center" onSubmit={handleJoinRoom}>
-      <h1 className="mt-24 text-extra font-extrabold leading-tight">
-        SketchSync
-      </h1>
-      <h3 className="text-2xl">Real Time Whiteboard˝</h3>
-      <div className="mt-10 mb-3 flex flex-col gap-2">
-        <label className="self-start font-bold leading-tight">
-          Enter Your Name:
-        </label>
-        <input
-          className="rounded-xl border p-5 py-1"
-          id="room-id"
-          placeholder="Username"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        ></input>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-lavender-400 flex flex-col items-center justify-center relative">
+      <nav className="w-full py-4 bg-transparent absolute top-0 left-0">
+        <div className="container mx-auto flex justify-between items-center px-4">
+          <div className="flex items-center">
+            <Image src="/SketchSyncLogo.svg" alt="SketchSync Logo" width={40} height={40} />
+            <h1 className="ml-2 text-2xl font-semibold text-white">SketchSync</h1>
+          </div>
+        </div>
+      </nav>
 
-      <button
-        className="rounded-xl bg-black p-5 py-1 text-white transition-all hover:scale-105 active:scale-100"
-        type="submit"
+      <form
+        className="flex flex-col items-center bg-white rounded-2xl shadow-lg p-8 mt-16"
+        onSubmit={handleJoinRoom}
       >
-        Enter Room
-      </button>
-    </form>
+        <h1 className="text-4xl font-extrabold text-purple-700">Join a Room</h1>
+        <h3 className="text-lg text-purple-500 mt-2 mb-8">-------------------------</h3>
+
+        <div className="flex flex-col gap-4 w-full">
+          <label className="text-lg font-semibold text-purple-600 self-start">
+            Enter Your Name:
+          </label>
+          <input
+            className="rounded-lg border border-purple-300 px-4 py-2 text-purple-900 placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            id="room-id"
+            placeholder="Username"
+            value={name}
+            onChange={(e) => setName(e.target.value.slice(0, 15))}
+          />
+        </div>
+
+        <button
+          className="mt-8 bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition duration-200"
+          type="submit"
+        >
+          Enter Room
+        </button>
+      </form>
+    </div>
   );
 };
 

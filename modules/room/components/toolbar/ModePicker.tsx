@@ -4,8 +4,7 @@ import { AiOutlineSelect } from "react-icons/ai";
 import { BsPencilFill } from "react-icons/bs";
 import { FaEraser } from "react-icons/fa";
 
-import { useOptions } from "@/common/recoil/options";
-import { useSetSelection } from "@/common/recoil/options/options.hooks";
+import { useOptions, useSetSelection } from "@/common/recoil/options";
 
 const ModePicker = () => {
   const [options, setOptions] = useOptions();
@@ -13,12 +12,13 @@ const ModePicker = () => {
 
   useEffect(() => {
     clearSelection();
+    
   }, [options.mode]);
 
   return (
     <>
       <button
-        className={`text-xl ${
+        className={`btn-icon text-xl ${
           options.mode === "draw" && "bg-green-400"
         }`}
         onClick={() => {
@@ -32,7 +32,7 @@ const ModePicker = () => {
       </button>
 
       <button
-        className={`text-xl ${
+        className={`btn-icon text-xl ${
           options.mode === "eraser" && "bg-green-400"
         }`}
         onClick={() => {
@@ -46,7 +46,7 @@ const ModePicker = () => {
       </button>
 
       <button
-        className={`text-xl ${
+        className={`btn-icon text-2xl ${
           options.mode === "select" && "bg-green-400"
         }`}
         onClick={() => {

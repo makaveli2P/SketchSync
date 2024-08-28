@@ -1,6 +1,8 @@
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { DEFAULT_ROOM, roomAtom } from "./room.atom";
+
 import { getNextColor } from "@/common/lib/getNextColor";
+
+import { DEFAULT_ROOM, roomAtom } from "./room.atom";
 
 export const useRoom = () => {
   const room = useRecoilValue(roomAtom);
@@ -12,12 +14,6 @@ export const useSetRoom = () => {
   const setRoom = useSetRecoilState(roomAtom);
 
   return setRoom;
-};
-
-export const useRoomId = () => {
-  const { id } = useRecoilValue(roomAtom);
-
-  return id;
 };
 
 export const useSetRoomId = () => {
@@ -39,11 +35,13 @@ export const useSetUsers = () => {
       const newUsersMoves = prev.usersMoves;
 
       const color = getNextColor([...newUsers.values()].pop()?.color);
+
       newUsers.set(userId, {
         name,
         color,
       });
       newUsersMoves.set(userId, []);
+
       return { ...prev, users: newUsers, usersMoves: newUsersMoves };
     });
   };
@@ -57,7 +55,6 @@ export const useSetUsers = () => {
 
       newUsers.delete(userId);
       newUsersMoves.delete(userId);
-
       return {
         ...prev,
         users: newUsers,
@@ -70,7 +67,6 @@ export const useSetUsers = () => {
   const handleAddMoveToUser = (userId: string, moves: Move) => {
     setRoom((prev) => {
       const newUsersMoves = prev.usersMoves;
-
       const oldMoves = prev.usersMoves.get(userId);
 
       newUsersMoves.set(userId, [...(oldMoves || []), moves]);
@@ -101,12 +97,21 @@ export const useMyMoves = () => {
   const [room, setRoom] = useRecoilState(roomAtom);
 
   const handleAddMyMove = (move: Move) => {
-    setRoom((prev) => ({ ...prev, myMoves: [...prev.myMoves, move] }));
+    setRoom((prev) => {
+      if (prev.myMoves[prev.myMoves.length - 1]?.options.mode === "select")
+        return {
+          ...prev,
+          myMoves: [...prev.myMoves.slice(0, prev.myMoves.length - 1), move],
+        };
+
+      return { ...prev, myMoves: [...prev.myMoves, move] };
+    });
   };
 
   const handleRemoveMyMove = () => {
     const newMoves = [...room.myMoves];
     const move = newMoves.pop();
+
     setRoom((prev) => ({ ...prev, myMoves: newMoves }));
 
     return move;

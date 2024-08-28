@@ -1,7 +1,9 @@
 import {
   createContext,
+  Dispatch,
   ReactChild,
   RefObject,
+  SetStateAction,
   useEffect,
   useRef,
   useState,
@@ -10,13 +12,10 @@ import {
 import { MotionValue, useMotionValue } from "framer-motion";
 import { toast } from "react-toastify";
 
-import { socket } from "@/common/lib/socket";
-import {
-  useRoom,
-  useSetRoom,
-  useSetUsers,
-} from "@/common/recoil/room/room.hooks";
 import { COLORS_ARRAY } from "@/common/constants/colors";
+import { socket } from "@/common/lib/socket";
+import { useSetUsers } from "@/common/recoil/room";
+import { useSetRoom, useRoom } from "@/common/recoil/room/room.hooks";
 
 export const roomContext = createContext<{
   x: MotionValue<number>;
@@ -25,9 +24,16 @@ export const roomContext = createContext<{
   redoRef: RefObject<HTMLButtonElement>;
   canvasRef: RefObject<HTMLCanvasElement>;
   bgRef: RefObject<HTMLCanvasElement>;
+  selectionRefs: RefObject<HTMLButtonElement[]>;
   minimapRef: RefObject<HTMLCanvasElement>;
-  moveImage: string;
-  setMoveImage: (base64: string) => void;
+  moveImage: { base64: string; x?: number; y?: number };
+  setMoveImage: Dispatch<
+    SetStateAction<{
+      base64: string;
+      x?: number | undefined;
+      y?: number | undefined;
+    }>
+  >;
 }>(null!);
 
 const RoomContextProvider = ({ children }: { children: ReactChild }) => {
@@ -35,20 +41,25 @@ const RoomContextProvider = ({ children }: { children: ReactChild }) => {
   const { users } = useRoom();
   const { handleAddUser, handleRemoveUser } = useSetUsers();
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
   const undoRef = useRef<HTMLButtonElement>(null);
   const redoRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgRef = useRef<HTMLCanvasElement>(null);
   const minimapRef = useRef<HTMLCanvasElement>(null);
+  const selectionRefs = useRef<HTMLButtonElement[]>([]);
 
-  const [moveImage, setMoveImage] = useState("");
+  const [moveImage, setMoveImage] = useState<{
+    base64: string;
+    x?: number;
+    y?: number;
+  }>({ base64: "" });
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
   useEffect(() => {
-    socket.on("room", (room, usersMoveToParse, usersToParse) => {
-      const usersMoves = new Map<string, Move[]>(JSON.parse(usersMoveToParse));
+    socket.on("room", (room, usersMovesToParse, usersToParse) => {
+      const usersMoves = new Map<string, Move[]>(JSON.parse(usersMovesToParse));
       const usersParsed = new Map<string, string>(JSON.parse(usersToParse));
 
       const newUsers = new Map<string, User>();
@@ -79,6 +90,7 @@ const RoomContextProvider = ({ children }: { children: ReactChild }) => {
         position: "top-center",
         theme: "colored",
       });
+
       handleAddUser(userId, username);
     });
 
@@ -86,7 +98,8 @@ const RoomContextProvider = ({ children }: { children: ReactChild }) => {
       toast(`${users.get(userId)?.name || "Anonymous"} has left the room.`, {
         position: "top-center",
         theme: "colored",
-      })
+      });
+
       handleRemoveUser(userId);
     });
 
@@ -106,9 +119,10 @@ const RoomContextProvider = ({ children }: { children: ReactChild }) => {
         undoRef,
         redoRef,
         canvasRef,
-        minimapRef,
-        moveImage,
         setMoveImage,
+        moveImage,
+        minimapRef,
+        selectionRefs,
       }}
     >
       {children}
