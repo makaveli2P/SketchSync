@@ -1,9 +1,9 @@
 import { useOptionsValue } from "@/common/recoil/options";
 import { useEffect } from "react";
 import { socket } from "@/common/lib/socket";
+import { DEFAULT_MOVE } from "@/common/constants/defaultMoves";
 import { useRefs } from "./useRefs";
 import { useCtx } from "./useCtx";
-import { DEFAULT_MOVE } from "@/common/constants/defaultMoves";
 
 export const useSelection = (drawAllMoves: () => Promise<void>) => {
   const ctx = useCtx();

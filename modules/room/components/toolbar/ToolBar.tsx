@@ -4,15 +4,16 @@ import { ImExit } from "react-icons/im";
 
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
 import { useRouter } from "next/router";
+import { useModal } from "@/common/recoil/modal";
 import ColorPicker from "./ColorPicker";
 import LineWidthPicker from "./LineWidthPicker";
 
 import ShapeSelector from "./ShapeSelector";
 import { useRefs } from "../../hooks/useRefs";
 import ImagePicker from "./ImagePicker";
+import BackgroundPicker from "./BackgroundPicker";
 import HistoryBtns from "./HistoryBtns";
 import ModePicker from "./ModePicker";
-import { useModal } from "@/common/recoil/modal";
 import ShareModal from "../../modals/ShareModal";
 
 const ToolBar = () => {
@@ -57,7 +58,10 @@ const ToolBar = () => {
       <LineWidthPicker />
       <ModePicker />
       <ImagePicker />
+
       <div className="h-px w-full bg-white" />
+
+      <BackgroundPicker />
 
       <button className="text-xl" onClick={handleShare}>
         <IoIosShareAlt />

@@ -41,8 +41,6 @@ nextApp.prepare().then(async () => {
     room.usersMoves.get(socketId)!.pop();
   };
 
-
-
   io.on("connection", (socket) => {
     const getRoomId = () => {
       const joinedRoom = [...socket.rooms].find((room) => room != socket.id);
@@ -54,17 +52,17 @@ nextApp.prepare().then(async () => {
 
     const leaveRoom = (roomId: string, socketId: string) => {
       const room = rooms.get(roomId)!;
-  
+
       if (!room) return;
-  
+
       const userMoves = room.usersMoves.get(socketId)!;
-  
+
       if (userMoves) room.drawed.push(...userMoves);
-  
+
       room.users.delete(socketId);
-  
+
       socket.leave(roomId);
-  
+
       console.log(room);
     };
 
@@ -90,7 +88,7 @@ nextApp.prepare().then(async () => {
 
     socket.on("join_room", (roomId, username) => {
       const room = rooms.get(roomId);
-      if (room) {
+      if (room && room.users.size < 10) {
         socket.join(roomId);
 
         room.users.set(socket.id, username);

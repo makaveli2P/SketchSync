@@ -1,11 +1,14 @@
 import { socket } from "@/common/lib/socket";
+import { useModal } from "@/common/recoil/modal";
 import { useSetRoomId } from "@/common/recoil/room";
+import NotFoundModal from "@/modules/home/modals/NotFound";
 
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 
 const NameInput = () => {
   const setRoomId = useSetRoomId();
+  const { openModal } = useModal();
 
   const [name, setName] = useState("");
 
@@ -24,7 +27,6 @@ const NameInput = () => {
       }
     });
 
-    // eslint-disable-next-line consistent-return
     return () => {
       socket.off("room_exists");
     };
@@ -32,8 +34,10 @@ const NameInput = () => {
 
   useEffect(() => {
     const handleJoined = (roomIdFromServer: string, failed?: boolean) => {
-      if (failed) router.push("/");
-      else setRoomId(roomIdFromServer);
+      if (failed) {
+        router.push("/");
+        openModal(<NotFoundModal id={roomIdFromServer} />);
+      } else setRoomId(roomIdFromServer);
     };
 
     socket.on("joined", handleJoined);
@@ -41,7 +45,7 @@ const NameInput = () => {
     return () => {
       socket.off("joined", handleJoined);
     };
-  }, [router, setRoomId]);
+  }, [router, setRoomId, openModal]);
 
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,7 +55,9 @@ const NameInput = () => {
 
   return (
     <form className="flex flex-col items-center" onSubmit={handleJoinRoom}>
-      <h1 className="mt-24 text-extra font-extrabold leading-tight">SketchSync</h1>
+      <h1 className="mt-24 text-extra font-extrabold leading-tight">
+        SketchSync
+      </h1>
       <h3 className="text-2xl">Real Time Whiteboard˝</h3>
       <div className="mt-10 mb-3 flex flex-col gap-2">
         <label className="self-start font-bold leading-tight">
