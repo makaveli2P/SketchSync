@@ -1,6 +1,6 @@
 import { HiOutlineDownload } from "react-icons/hi";
-import {IoIosShareAlt} from "react-icons/io"
-import {ImExit} from "react-icons/im"
+import { IoIosShareAlt } from "react-icons/io";
+import { ImExit } from "react-icons/im";
 
 import { CANVAS_SIZE } from "@/common/constants/canvasSize";
 import { useRouter } from "next/router";
@@ -12,9 +12,12 @@ import { useRefs } from "../../hooks/useRefs";
 import ImagePicker from "./ImagePicker";
 import HistoryBtns from "./HistoryBtns";
 import ModePicker from "./ModePicker";
+import { useModal } from "@/common/recoil/modal";
+import ShareModal from "../../modals/ShareModal";
 
 const ToolBar = () => {
   const { canvasRef, bgRef } = useRefs();
+  const { openModal } = useModal();
 
   const router = useRouter();
 
@@ -38,6 +41,8 @@ const ToolBar = () => {
     link.click();
   };
 
+  const handleShare = () => openModal(<ShareModal />);
+
   return (
     <div
       className="absolute left-10 top-[50%] z-50 flex flex-col items-center gap-5 rounded-lg p-5 bg-zinc-900 text-white"
@@ -54,9 +59,9 @@ const ToolBar = () => {
       <ImagePicker />
       <div className="h-px w-full bg-white" />
 
-       <button className="text-xl" onClick={() => {}}>
+      <button className="text-xl" onClick={handleShare}>
         <IoIosShareAlt />
-       </button>
+      </button>
 
       <button className="text-xl" onClick={handleDownload}>
         <HiOutlineDownload />
